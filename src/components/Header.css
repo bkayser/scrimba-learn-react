@@ -1,0 +1,29 @@
+.header {
+    background: linear-gradient(90deg, #672280 1.18%, #A626D3 100%);
+    display: flex;
+    align-items: center;
+}
+
+.header>* {
+    color: white;
+}
+
+.header__title {
+    flex-grow: 1;
+    font-weight: 700;
+    font-size: 21px;
+    letter-spacing: -0.1em;
+}
+
+.header__course {
+    margin: auto 37px;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: right;
+}
+
+.header__troll {
+    width: 31px;
+    margin: 20px 7px 20px 20px;
+}
