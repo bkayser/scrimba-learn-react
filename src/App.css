@@ -1,5 +1,8 @@
-.control_panel {
-  display: flexbox;
+
+.App {
+
+  display: flex;
   flex-direction: column;
-  margin: 34px 36px;
+  align-items: center;
+  
 }
