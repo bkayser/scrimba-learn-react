@@ -10,7 +10,7 @@ export default function Sidebar(props) {
                 }`}
                 onClick={() => props.setCurrentNoteId(note.id)}
             >
-                <h4 className="text-snippet">Note {index + 1}</h4>
+                <h4 className="text-snippet">{extractTitle(note.body) || "Note "+(index + 1)}</h4>
             </div>
         </div>
     ))
@@ -24,4 +24,9 @@ export default function Sidebar(props) {
             {noteElements}
         </section>
     )
+}
+
+function extractTitle(body) {
+    const m = body.match(/^#*\s*(\S[^\n]*)/)
+    return m ? m[1] : null;
 }
