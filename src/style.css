@@ -38,7 +38,7 @@ button:focus {
     align-items: center;
 }
 
-.sidebar--header > h3 {
+.sidebar--header>h3 {
     font-size: 1.75rem;
 }
 
@@ -71,7 +71,7 @@ button:focus {
     width: 100%;
     cursor: pointer;
     display: flex;
-    justify-content: space-between;
+    justify-content: left;
     align-items: center;
 }
 
@@ -91,6 +91,8 @@ button:focus {
 }
 
 .text-snippet {
+    flex: 1 1 auto;
+    margin-left: 18px;
     padding-inline: 5px;
     font-size: 0.8rem;
     font-weight: 400;
@@ -137,4 +139,110 @@ button:focus {
     justify-content: center;
     align-items: center;
     background-color: whitesmoke;
+}
+
+.delete-btn {
+    flex: 0 0 auto;
+    display: none;
+    background: none;
+    border: none;
+}
+
+.title:hover > .delete-btn {
+    display: block;
+}
+
+.trash-icon {
+    cursor: pointer;
+}
+
+.gg-trash {
+    box-sizing: border-box;
+    position: relative;
+    display: block;
+    transform: scale(var(--ggs, 1));
+    width: 10px;
+    height: 12px;
+    border: 2px solid transparent;
+    box-shadow:
+        0 0 0 2px,
+        inset -2px 0 0,
+        inset 2px 0 0;
+    border-bottom-left-radius: 1px;
+    border-bottom-right-radius: 1px;
+    margin-top: 4px
+}
+
+.gg-trash::after,
+.gg-trash::before {
+    content: "";
+    display: block;
+    box-sizing: border-box;
+    position: absolute
+}
+
+.gg-trash::after {
+    background: currentColor;
+    border-radius: 3px;
+    width: 16px;
+    height: 2px;
+    top: -4px;
+    left: -5px
+}
+
+.gg-trash::before {
+    width: 10px;
+    height: 4px;
+    border: 2px solid;
+    border-bottom: transparent;
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+    top: -7px;
+    left: -2px
+}
+
+/*
+* Drag handle
+*/
+.drag-me {
+    padding-left: 16px;
+    cursor: move;
+    cursor: -webkit-grab;
+    cursor: -moz-grab;
+    border-radius: 2px;
+    transition: all .2s ease-out;
+}
+
+.drag-me:hover {
+    box-shadow: 0 1px 3px #777;
+}
+
+.drag-me:active {
+    cursor: move;
+    cursor: -webkit-grabbing;
+    cursor: -moz-grabbing;
+}
+
+.drag-me:before {
+    content: '.';
+    color: #AAA;
+    position: relative;
+    left: auto; /*14px;*/
+    top: -10px;
+    font-size: 20px;
+/*    line-height: 20px; */
+    text-shadow: #AAA 0 5px,
+        #AAA 0 5px,
+        #AAA 0 10px,
+        #AAA 5px 0,
+        #AAA 5px 5px,
+        #AAA 5px 10px,
+        #AAA 10px 0,
+        #AAA 10px 5px,
+        #AAA 10px 10px;
+}
+
+
+.drag-me div {
+    line-height: 42px;
 }
