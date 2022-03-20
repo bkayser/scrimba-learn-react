@@ -40,8 +40,8 @@ export default function App() {
             id: nanoid(),
             body: "# Type your markdown note's title here"
         }
-        setNotes(prevNotes => [newNote, ...prevNotes])
-//        setCurrentNoteId(newNote.id)
+        setCurrentNoteId(newNote.id)
+        setNotes(prevNotes => [...prevNotes, newNote])
     }
 
     function updateNote(text) {
@@ -97,7 +97,6 @@ export default function App() {
         if (fromId == toId) return;
         const fromIndex = findNoteIndex(fromId);
         setNotes((oldNotes) => {
-            debugger
             const newNotes = [ ...oldNotes ]
             const target = newNotes[fromIndex]
             newNotes.splice(fromIndex, 1)

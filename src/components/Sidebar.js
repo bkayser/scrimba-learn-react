@@ -2,10 +2,9 @@ import React from "react"
 
 export default function Sidebar(props) {
 
-    function dragestartHandler(event, noteId) {
+    function dragestartHandler(event) {
         event.dataTransfer.setData("text/plain", event.target.id)
         event.dataTransfer.effectAllowed = "move";
-        console.log(`Start drag of "${event.target.id}"`)
     }
     function dropHandler(event) {
         event.preventDefault();
@@ -18,7 +17,6 @@ export default function Sidebar(props) {
             dropTarget = dropTarget.parentElement;
             dropId = dropTarget.id;
         }
-        console.log(`Dropped ${sourceId} onto: ${dropId}`);
         props.swapAction(sourceId, dropId);
     }
     function dragoverHandler(event) {
@@ -33,8 +31,11 @@ export default function Sidebar(props) {
         <div key={note.id}>
             <div className={`drag-me title ${note.id === props.currentNote.id ? "selected-note" : ""}`}
                 id={note.id}
-                onClick={() => props.setCurrentNoteId(note.id)} draggable="true" 
-                onDragStart={(ev)=>dragestartHandler(ev, note.id)}>
+                onClick={() => { 
+                    return(props.setCurrentNoteId(note.id))
+                }}
+                draggable="true" 
+                onDragStart={dragestartHandler}>
                 <div className="text-snippet">{extractTitle(note.body) || "Note " + (index + 1)}</div>
                 <button className="delete-btn" onClick={(event) => props.deleteNote(event, note.id)}>
                   <i className="gg-trash trash-icon"></i>
