@@ -2,6 +2,8 @@ import React from "react"
 import logo from './logo.svg';
 import './App.css';
 import Die from './Die.js'
+import useWindowSize from 'react-use/lib/useWindowSize'
+import Confetti from 'react-confetti'
 
 function newDie() {
     return ({
@@ -18,8 +20,14 @@ function App() {
     const [dice, setDice] = React.useState(allNewDice());
     const [count, setCount] = React.useState(0)
     const [tenzies, setTenzies] = React.useState(false)
+    const [remainingCountdown, setRemainingCountdown] = React.useState(0)
 
-    React.useEffect(() => { }, [tenzies])
+    React.useEffect(() => {
+        if (dice.every(die => die.isHeld && die.value === dice[0].value)) {
+            setTenzies(true)
+        }
+    }, [dice])
+
 
     function Dice() {
         return (
@@ -40,19 +48,20 @@ function App() {
         } else {
             setDice((oldDice) => oldDice.map((die) => die.isHeld ? die : newDie()))
             setCount(c => c + 1)
+            setRemainingCountdown(c => c + 1)
         }
     }
 
     function holdDie(i) {
-        const newDice = [...dice]
-        newDice[i] = {
-            value: newDice[i].value,
-            isHeld: !newDice[i].isHeld
-        }
-        setDice(newDice)
-        if (newDice.every(die => die.isHeld && die.value === dice[0].value)) {
-            setTenzies(true)
-        }
+        setDice((oldDice) => {
+            const newDice = [...oldDice]
+            newDice[i] = {
+                ...oldDice[i],
+                isHeld: !oldDice[i].isHeld
+            }
+            return (newDice)
+        })
+        setRemainingCountdown(0)
     }
 
     function expectedRemaining() {
@@ -64,10 +73,10 @@ function App() {
             const prob = -n * Math.log(1 - p) * ((1 - (1 - p) ** k) ** (n - 1)) * (1 - p) ** k
             sum += k * prob
         }
-        return (Math.round(sum))
+        return (Math.round(sum) - remainingCountdown)
     }
     function instructions() {
-        if (count == 0 && dice.every(die=>!die.isHeld)) {
+        if (count == 0 && dice.every(die => !die.isHeld)) {
             return "Roll until all dice are the same. Click each die to freeze it at its current value between rolls."
         } else if (tenzies) {
             return `Congratulations!  You got it in ${count} rolls!`
@@ -76,8 +85,14 @@ function App() {
         }
 
     }
+    const { width, height } = useWindowSize()
+
     return (
         <main>
+            {tenzies && <Confetti
+                width={width}
+                height={height}/>
+            }
             <h1 className="title">Tenzies</h1>
             <div className="instructions">
                 <p className="instructions-text">{instructions()}</p>
