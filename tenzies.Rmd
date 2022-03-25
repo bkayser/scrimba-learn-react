@@ -1,0 +1,224 @@
+---
+title: "Predicting Dice Rolls in Tenzies"
+author: "Bill Kayser"
+date: "March 24, 2022"
+output: html_notebook
+---
+
+```{r setup, include=F}
+library(tidyverse)
+library(ggplot2)
+```
+
+*TLDR:* Skip to the bottom to see the javascript function.
+
+I decided to add a feature to the tenzies challenge that would show both the number of rolls so 
+far and a prediction for the number of remaining rolls.  The prediction would simply be from an estimate of the
+expected number of rolls to get remaining unfrozen dice to all roll a target value--whatever the value is you already have frozen.  
+
+So let's say you just froze your 5th die, and you are about to roll the remaining 5. A message will appear
+telling you how many more rolls are expected to get the 5 remaining dice to your number.  This estimate decreases
+by one after each roll you make, even going negative if you are unlucky.  I know this isn't logically accurate since the odds don't change over time (there is no "law of averages"), but it does give the nice effect of tracking your actual number of rolls more closely.
+
+So the question is, what is the average (mean, or expected value) number of rolls of all the dice before they all
+show the same number?  For that matter, should we be using the average, the median or the mode?  Since the distribution is skewed, median would probably be a better number to track, and maybe even the mode, but 
+the mean felt like more of a challenge so that's what I set out to do.
+
+## Analysis
+
+Probability of a succes in one throw is the probablity of rolling one face of the die out of six:
+
+$$p = 1/6$$
+
+
+The probability of _not_ throwing the target value is the inverse, or $1-p$. So the probability of k successive misses given by this function:
+
+$$(1-p)^k$$
+
+Inverting this gives the probability of at least one success in k throws:
+
+$$1-(1-p)^k$$
+Does this pass the intuition test?  The higher the value of k, the higher the likelihood of a success.  If you
+roll a die 12 times, you're pretty certain you're going to roll that number.  The formula tells you it will happen with a probability of `r scales::percent(1 - (1-(1/6))^12)`.  Seems about right.
+
+But now, if you are rolling $n$ dice, then the probability of finding at least one success in $k$ throws of each die is the product of the probabilities of success of each individual die:
+
+$$(1-(1-p)^k)^n$$
+The first deriviative of this formula will give you the Probability Mass Function (PMF).  This will tell
+us the probability of a particular number of throws being the exact number required.  I cheated and used
+a site called [derivative-calculator.net](https://www.derivative-calculator.net) to work out the derivative.
+
+$$-n\ln\left(1-p\right)\left(1-\left(1-p\right)^k\right)^{n-1}\left(1-p\right)^k$$
+So what is the expected value of $k$ given $n$?  From reading different articles it appears there's a closed form solution for this but I don't understand the notation well enough to implement it so instead I just calculated
+it brute force by multiplying the rolls by their probability using the PMF, above.  Here's what that looks like: 
+
+$$\sum_{k=1}^{m}-kn\ln\left(1-p\right)\left(1-\left(1-p\right)^k\right)^{n-1}\left(1-p\right)^k$$
+
+# Validation
+
+So how accurate is this?  Let's test the values predicted by the model with actual simulations of the game.
+
+### Evaluating the Model
+
+The game begins with a random roll where you choose which dice to "freeze".  For 10 dice, the average number of same faced dice is about 3.5, which I found from simulating.  (I couldn't find or figure out the actual solution).
+So for our model we'll assume we start with three dice of the same face, and the second roll will start with 7 dice instead of 10.  
+
+```{r}
+p <- 1/6
+n <- 7
+```
+
+Now implement the PMF:
+
+```{r}
+
+pmf <- function(p, k, n) {
+  -n * log(1-p) * ((1-(1-p)^k)^(n-1)) * (1-p)^k
+}
+```
+
+What does this look like?
+
+```{r}
+x <- 0:40
+y <- pmf(1/6, x, 10)
+ggplot() + aes(x=x-1, y=y) + geom_col()
+```
+
+Now calculate the mean number of rolls looking at the probabilities of the first 500 rolls, multiplying each
+by the roll number:
+
+```{r}
+mean_rolls <- function(p, n) {
+  iter <- 1000
+  sum <- 0
+  for (k in 1:iter) {
+    sum <- sum + k * pmf(p, k, n)
+  }
+  return(sum)
+}
+
+1 + mean_rolls(p, 8)
+```
+
+### Running the simulations
+
+Define a function to run one simulation with `n` dice.
+
+```{r}
+simulate <- function(n) {
+
+  # Roll a set of 6 dice using uniform random samples
+  firstroll <- sample(1:6, 10, replace=TRUE) |>
+    table() |>
+    sort(decreasing = T)
+  
+  # Define the target as whatever we rolled the most of
+  target <- as.integer(names(firstroll[1]))
+  
+  # Now the remaining number of dice to start rolling for simulation
+  n.diceleft <- n - firstroll[1]
+  if (n.diceleft == 0) return(1)
+  
+  # Now populate a matrix with random numbers whose columns represent a sequence of 100 rolls
+  # of each individual dice.  
+  dice.history <-
+    runif(n.diceleft * 100, 0, 6) |>
+    ceiling() |>
+    matrix(ncol=n.diceleft)
+    
+  # Find the index of the first success in each column
+  rolls.to.target <- sapply(1:n.diceleft, \(col) {
+    return(which(dice.history[,col] == target)[1])
+  })
+
+  # Take the max of the rolls required for each die, and add 1 for firstroll
+  return(1 + max(rolls.to.target))
+}
+```
+
+Run a simulation 50,000 times.
+```{r}
+iter <- 50000
+results <- sapply(1:iter, \(x){ return(simulate(10)) })
+# Mode:
+df <- table(results)
+mode <- sort(decreasing = T, df)[1]
+# Mean
+avg <- sum(results) / iter
+```
+
+The mode was `r mode` and the mean number of throws was `r avg`.  The worst game took `r max(results)` rolls.
+
+#### Histogram of simulations:
+
+```{r}
+ggplot(tibble(x=results)) + aes(x=x) + geom_histogram(binwidth = 1) +
+  xlab("Number of Rolls to Success") + ylab("Number of Simulations")
+```
+
+## Model vs Simulation
+
+They are pretty close.  
+
+```{r}
+sim <- rep(0, length(x))
+indices <- as.integer(names(df)) |> sort()
+for (i in indices[indices <= length(x)]) {
+  sim[i] <- df[i]/iter
+}
+model.tail <- pmf(p, x, n-3)
+model <- c(0, model.tail[1:length(x)-1])
+data <- tibble(x=x,
+               model=model,
+               simulation=sim) |>
+  pivot_longer(cols=c('model', 'simulation'),
+              names_to='PMF',
+              values_to="Probability")
+
+ggplot(data) +
+  aes(x=x, y=Probability, color=PMF) +
+  geom_line() +
+  xlab("Number of Rolls to Success") +
+  ylab("Probability for Given Number of Rolls")
+```
+
+# Appendix
+
+### How many same dice are likely to appear in one throw?
+
+```{r}
+rolls <- 10000
+sum <- 0
+for (i in 1:rolls) {
+  throw <- 
+    sum <- sum + sample(1:6, 10, replace=T) |>
+    table() |> 
+    sort(decreasing=T) |>
+    head(1)
+}
+sum/rolls
+```
+
+### Javascript Function 
+
+To calculate the expected number of remaining rolls as a function of unfrozen dice:
+
+```javascript
+
+function ev(n) {
+  const p = 1/6
+  const iter = 500
+  let sum = 0
+  for (var k = 1; k <= iter; k++) {
+    const prob = -n * Math.log(1-p) * ((1-(1-p)**k)**(n-1)) * (1-p)**k
+    sum += k * prob
+  }
+  return(sum)
+}
+
+```
+           
+           
+                 
+                 
