@@ -1,4 +1,78 @@
-.App {
-  text-align: center;
+.question {
+  padding-bottom: 15px;
+  font-family: Karla;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 19px;
+  letter-spacing: 0em;
+  text-align: left;
+  border-bottom: 0.79px solid #DBDEF0
 }
 
+.answers {
+  display: flex;
+  justify-content: start;
+}
+
+.answer:disabled {
+  color: black;
+}
+.answer {
+  background: #F6F6F6;
+  border-radius: 8px;
+  border-width: 0.5px;
+  border-style: solid;
+  padding: 4px 12px;
+  margin: 0px 8px;
+}
+
+.answer:disabled {
+  opacity: 0.5;
+}
+
+.answer.correct:disabled {
+  background: #94D7A2;
+  opacity: 1;
+}
+
+.answer.incorrect:disabled {
+  opacity: 0.5;
+  background: #F8BCBC;
+}
+
+.Play {
+  margin: 40px 75px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: left;
+}
+
+#score {
+  margin-top: 34px;
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 15px;
+  text-align: center;
+  color: #293264;
+
+}
+
+#next_button {
+  align-self: center;
+  margin: 33px;
+  border: 0px solid;
+  width: 120px;
+  height: 35px;
+  left: 215px;
+  top: 490px;
+  background: #4D5B9E;
+  color: white;
+  border-radius: 10px;
+}
+
+#next_button:disabled {
+  opacity: 0.5;
+}
